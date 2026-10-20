@@ -1,6 +1,8 @@
 # Getter CVAT CLI
 
-CLI para os fluxos de projetos, tasks, frames e anotações no CVAT. Usa o SDK oficial `cvat-sdk==2.62.0`. A versão 0.2 adiciona download direto de frames, geometrias além de retângulos e acréscimos de anotações em frames vazios, preservando trabalho existente.
+Uma única CLI para projetos, tasks, frames, datasets e anotações no CVAT. Use sempre `getter-cvat`; não há uma segunda ferramenta para chamar. Ela usa o SDK oficial `cvat-sdk==2.62.0`.
+
+O ponto de entrada é `cvat_cli.py`, publicado como o comando `getter-cvat`. `cvat_core.py` é somente código interno compartilhado para download de frames e operações seguras de anotações; ele não é instalado como comando e não deve ser chamado diretamente.
 
 ## Instalação
 
@@ -36,7 +38,7 @@ As opções globais vêm antes do comando. Erros HTTP não imprimem objetos de r
 getter-cvat ping
 getter-cvat formats
 getter-cvat projects
-getter-cvat project-create "Nova demo" --labels classes.json
+getter-cvat project-create "Novo projeto" --labels classes.json
 getter-cvat project-rename 150 "Nome revisado"
 getter-cvat tasks --project 150
 getter-cvat task-create "Amostras" --project 150 --files imagens/
@@ -123,7 +125,7 @@ Não há exclusão de projetos/tasks ou sobrescrita de anotações existentes. O
 .venv/bin/python -m unittest -v
 .venv/bin/ruff check .
 .venv/bin/ruff format --check .
-.venv/bin/python -m compileall -q cvat_demo.py cvat_ops.py sampling.py
+.venv/bin/python -m compileall -q cvat_cli.py cvat_core.py sampling.py
 .venv/bin/python -m build
 ```
 

@@ -4,7 +4,7 @@ from tempfile import TemporaryDirectory
 from types import SimpleNamespace as N
 import unittest
 
-from cvat_demo import ensure_empty, parser, read_env, resolve_annotations, resources
+from cvat_cli import ensure_empty, parser, read_env, resolve_annotations, resources
 from sampling import uniform_indices
 
 
@@ -24,7 +24,7 @@ class CliTests(unittest.TestCase):
     def test_env_permissions(self):
         with TemporaryDirectory() as d:
             path = Path(d) / ".env"
-            path.write_text('CVAT_USERNAME=demo\nCVAT_PASSWORD="not-real"\n')
+            path.write_text('CVAT_USERNAME=test-user\nCVAT_PASSWORD="not-real"\n')
             path.chmod(0o600)
             self.assertEqual(read_env(path)["CVAT_PASSWORD"], "not-real")
             if os.name == "posix":
@@ -88,7 +88,7 @@ class CliTests(unittest.TestCase):
         args = parser().parse_args(
             [
                 "task-create",
-                "Demo",
+                "Amostras",
                 "--project",
                 "150",
                 "--files",

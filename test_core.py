@@ -8,8 +8,8 @@ import unittest
 from unittest.mock import Mock
 from zipfile import ZipFile
 
-from cvat_demo import parser
-from cvat_ops import (
+from cvat_cli import parser
+from cvat_core import (
     append_annotations,
     download_frames,
     filter_missing,
@@ -35,7 +35,7 @@ def polygon(frame):
     }
 
 
-class OpsTests(unittest.TestCase):
+class CoreTests(unittest.TestCase):
     def test_shapes_and_tags_resolved_without_changing_input(self):
         payload = {"shapes": [polygon(2)], "tags": [{"label": "smoke", "frame": 1}]}
         result = resolve(payload, labels(), 3)
@@ -179,7 +179,7 @@ class OpsTests(unittest.TestCase):
         def create(*, action, id, patched_labeled_data_request):
             self.assertEqual(action, "create")
             self.assertEqual(id, 8)
-            from cvat_ops import serial
+            from cvat_core import serial
 
             data = serial(patched_labeled_data_request)
             for kind in ("shapes", "tags"):

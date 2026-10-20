@@ -1,7 +1,7 @@
 include README.md perfil.env.example
 recursive-include docs *.md
 recursive-include examples *.json
-include test_cli.py test_ops.py
+include test_cli.py test_core.py
 prune .venv
 prune dist
 prune build

@@ -1,4 +1,7 @@
-"""Reusable CVAT demo CLI. Secrets are read only from env/profile, never logged."""
+"""The public Getter CVAT command-line interface.
+
+Secrets are read only from env/profile and never logged.
+"""
 
 import argparse
 import getpass
@@ -77,7 +80,7 @@ def ensure_empty(task):
 
 
 def resolve_annotations(payload, labels, size):
-    from cvat_ops import resolve
+    from cvat_core import resolve
 
     return resolve(payload, labels, size)
 
@@ -144,8 +147,8 @@ def sample(args):
 
 
 def parser():
-    p = argparse.ArgumentParser(description="CVAT tools for Getter demos")
-    p.add_argument("--version", action="version", version="getter-cvat 0.2.0")
+    p = argparse.ArgumentParser(description="Getter command-line interface for CVAT")
+    p.add_argument("--version", action="version", version="getter-cvat 0.3.0")
     p.add_argument("--env", type=Path, default=DEFAULT_ENV)
     p.add_argument("--host")
     p.add_argument("--org", help="Organization slug; omitted = personal workspace")
@@ -258,7 +261,7 @@ def main():
         client.organization_slug = args.org or ""
         cmd = args.command
         if cmd == "formats":
-            from cvat_ops import serial
+            from cvat_core import serial
 
             data, _ = client.api_client.server_api.retrieve_annotation_formats()
             print(json.dumps(serial(data), ensure_ascii=False))
@@ -357,7 +360,7 @@ def main():
         else:
             task = client.tasks.retrieve(args.id)
             if cmd == "frames":
-                from cvat_ops import download_frames
+                from cvat_core import download_frames
 
                 print(
                     json.dumps(
@@ -366,7 +369,11 @@ def main():
                     )
                 )
             elif cmd in ("append", "import-missing"):
-                from cvat_ops import append_annotations, frame_catalog, read_cvat_images
+                from cvat_core import (
+                    append_annotations,
+                    frame_catalog,
+                    read_cvat_images,
+                )
 
                 if cmd == "append":
                     payload = json_file(args.json)

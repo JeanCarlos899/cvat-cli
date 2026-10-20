@@ -4,9 +4,9 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "getter-cvat"
-version = "0.2.0"
+version = "0.3.0"
 readme = "README.md"
-description = "Reusable CVAT project, task, upload and annotation tools for demos"
+description = "Command-line interface for CVAT projects, tasks, data and annotations"
 requires-python = ">=3.10"
 dependencies = ["cvat-sdk==2.62.0"]
 
@@ -14,10 +14,10 @@ dependencies = ["cvat-sdk==2.62.0"]
 dev = ["ruff>=0.11", "build>=1.2"]
 
 [project.scripts]
-getter-cvat = "cvat_demo:entrypoint"
+getter-cvat = "cvat_cli:entrypoint"
 
 [tool.setuptools]
-py-modules = ["cvat_demo", "sampling", "cvat_ops"]
+py-modules = ["cvat_cli", "sampling", "cvat_core"]
 
 [tool.ruff]
 target-version = "py310"
