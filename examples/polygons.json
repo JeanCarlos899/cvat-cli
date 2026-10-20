@@ -1,0 +1,11 @@
+{
+  "shapes": [
+    {
+      "label": "smoke",
+      "type": "polygon",
+      "frame": 0,
+      "points": [10.5, 10.5, 40.0, 12.5, 35.5, 32.0, 12.0, 30.0],
+      "attributes": {}
+    }
+  ]
+}

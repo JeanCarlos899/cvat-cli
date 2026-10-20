@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "getter-cvat"
+version = "0.2.0"
+readme = "README.md"
+description = "Reusable CVAT project, task, upload and annotation tools for demos"
+requires-python = ">=3.10"
+dependencies = ["cvat-sdk==2.62.0"]
+
+[project.optional-dependencies]
+dev = ["ruff>=0.11", "build>=1.2"]
+
+[project.scripts]
+getter-cvat = "cvat_demo:entrypoint"
+
+[tool.setuptools]
+py-modules = ["cvat_demo", "sampling", "cvat_ops"]
+
+[tool.ruff]
+target-version = "py310"
+extend-exclude = [".venv", "dist", "build", "*.egg-info"]
+
+[tool.ruff.lint]
+select = ["F"]
