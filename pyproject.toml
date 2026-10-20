@@ -3,8 +3,8 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "getter-cvat"
-version = "0.3.0"
+name = "cvat-cli"
+version = "0.4.0"
 readme = "README.md"
 description = "Command-line interface for CVAT projects, tasks, data and annotations"
 requires-python = ">=3.10"
@@ -14,7 +14,7 @@ dependencies = ["cvat-sdk==2.62.0"]
 dev = ["ruff>=0.11", "build>=1.2"]
 
 [project.scripts]
-getter-cvat = "cvat_cli:entrypoint"
+cvat = "cvat_cli:entrypoint"
 
 [tool.setuptools]
 py-modules = ["cvat_cli", "sampling", "cvat_core"]

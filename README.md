@@ -1,8 +1,10 @@
-# Getter CVAT CLI
+# CVAT CLI
 
-Uma única CLI para projetos, tasks, frames, datasets e anotações no CVAT. Use sempre `getter-cvat`; não há uma segunda ferramenta para chamar. Ela usa o SDK oficial `cvat-sdk==2.62.0`.
+Uma única CLI para projetos, tasks, frames, datasets e anotações no CVAT. Use sempre `cvat`; não há uma segunda ferramenta para chamar. Ela usa o SDK oficial `cvat-sdk==2.62.0`.
 
-O ponto de entrada é `cvat_cli.py`, publicado como o comando `getter-cvat`. `cvat_core.py` é somente código interno compartilhado para download de frames e operações seguras de anotações; ele não é instalado como comando e não deve ser chamado diretamente.
+O ponto de entrada é `cvat_cli.py`, publicado como o comando `cvat`. `cvat_core.py` é somente código interno compartilhado para download de frames e operações seguras de anotações; ele não é instalado como comando e não deve ser chamado diretamente.
+
+Para uso por pessoas ou IA, a referência completa de cada argumento, arquivo de entrada, saída, padrão e efeito remoto está em [docs/CLI.md](docs/CLI.md). O `--help` de cada subcomando também descreve suas entradas imediatas.
 
 ## Instalação
 
@@ -11,21 +13,21 @@ Python 3.10 ou superior. Em um checkout deste repositório:
 ```sh
 python3 -m venv .venv
 .venv/bin/python -m pip install .
-.venv/bin/getter-cvat --help
-.venv/bin/getter-cvat --version
+.venv/bin/cvat --help
+.venv/bin/cvat --version
 ```
 
-Os exemplos seguintes usam `getter-cvat`; ative a venv ou use o caminho completo acima. Também pode instalar com `pipx install .`. A instalação gera o comando sem depender de um launcher com o caminho do código-fonte.
+Os exemplos seguintes usam `cvat`; ative a venv ou use o caminho completo acima. Também pode instalar com `pipx install .`. A instalação gera o comando sem depender de um launcher com o caminho do código-fonte.
 
 ## Perfil e credenciais
 
-Perfil padrão: `~/.config/getter-cvat/.env`. Use `perfil.env.example` apenas como modelo e mantenha o perfil preenchido fora do repositório:
+Perfil padrão: `~/.config/cvat/.env`. Use `perfil.env.example` apenas como modelo e mantenha o perfil preenchido fora do repositório:
 
 ```sh
-mkdir -p ~/.config/getter-cvat
-chmod 700 ~/.config/getter-cvat
-cp perfil.env.example ~/.config/getter-cvat/.env
-chmod 600 ~/.config/getter-cvat/.env
+mkdir -p ~/.config/cvat
+chmod 700 ~/.config/cvat
+cp perfil.env.example ~/.config/cvat/.env
+chmod 600 ~/.config/cvat/.env
 ```
 
 Preencha `CVAT_HOST` (HTTPS), `CVAT_USERNAME` e opcionalmente `CVAT_PASSWORD`. Senha vazia gera prompt interativo. Não passe senha em argumentos. Variáveis de ambiente têm prioridade sobre o perfil; `--env /caminho/perfil.env` seleciona outro arquivo; `--host https://cvat.example.org` altera o servidor. `--org slug` seleciona a organização; sem ele é usado o workspace pessoal.
@@ -35,19 +37,19 @@ As opções globais vêm antes do comando. Erros HTTP não imprimem objetos de r
 ## Conexão, projetos, tasks e jobs
 
 ```sh
-getter-cvat ping
-getter-cvat formats
-getter-cvat projects
-getter-cvat project-create "Novo projeto" --labels classes.json
-getter-cvat project-rename 150 "Nome revisado"
-getter-cvat tasks --project 150
-getter-cvat task-create "Amostras" --project 150 --files imagens/
-getter-cvat task-create "Video" --project 150 --files video.mp4 --step 32 --quality 100
-getter-cvat task-upload 123 --files imagens/
-getter-cvat task-info 123
-getter-cvat labels 123
-getter-cvat jobs --task 123
-getter-cvat job-info 456
+cvat ping
+cvat formats
+cvat projects
+cvat project-create "Novo projeto" --labels classes.json
+cvat project-rename 150 "Nome revisado"
+cvat tasks --project 150
+cvat task-create "Amostras" --project 150 --files imagens/
+cvat task-create "Video" --project 150 --files video.mp4 --step 32 --quality 100
+cvat task-upload 123 --files imagens/
+cvat task-info 123
+cvat labels 123
+cvat jobs --task 123
+cvat job-info 456
 ```
 
 `classes.json` é um array de labels no schema CVAT, com seus atributos. `--files` aceita arquivos, ZIP ou diretórios imediatos de imagens/vídeos. Recursos e basenames repetidos são recusados; use nomes numerados com zeros à esquerda. `task-create` verifica duplicatas e mostra o ID criado antes do upload. Se falhar, confira esse ID e use `task-upload` somente se a task estiver vazia; não recrie cegamente.
@@ -55,11 +57,11 @@ getter-cvat job-info 456
 ## Baixar frames e anotações
 
 ```sh
-getter-cvat frames 123 --out dataset/
-getter-cvat frames 123 --frames 0,2,5:9 --out selecao/
-getter-cvat export 123 anotacoes.zip --format "CVAT for images 1.1"
-getter-cvat export 123 dataset.zip --images --format "CVAT for images 1.1"
-getter-cvat raw-export 123 anotacoes_raw.json
+cvat frames 123 --out dataset/
+cvat frames 123 --frames 0,2,5:9 --out selecao/
+cvat export 123 anotacoes.zip --format "CVAT for images 1.1"
+cvat export 123 dataset.zip --images --format "CVAT for images 1.1"
+cvat raw-export 123 anotacoes_raw.json
 ```
 
 `frames` baixa os bytes dos frames sem recodificar as imagens. A saída deve ser uma pasta nova. Ela só é disponibilizada ao concluir todos os downloads e contém `frames_manifest.json` com índice CVAT, nome, tamanho e SHA-256 de cada arquivo. A qualidade padrão é `original`; `--quality compressed` pede a versão compactada ao servidor. Quando o servidor devolve JPEG para um PNG original, o nome recebe extensão `.jpg`; `source_name` no manifesto mantém o nome da task. Em tasks de vídeo cuja metadata contém somente um frame comum, os arquivos recebem nomes `frame_000000.jpg`, etc.; o índice continua sendo o índice CVAT. Imagens com nomes aninhados preservam o caminho relativo, com proteção contra traversal e colisões de nomes.
@@ -71,8 +73,8 @@ getter-cvat raw-export 123 anotacoes_raw.json
 ## Anotar e importar em task vazia
 
 ```sh
-getter-cvat annotate 123 --json examples/polygons.json
-getter-cvat import 123 anotacoes.zip --format "CVAT 1.1"
+cvat annotate 123 --json examples/polygons.json
+cvat import 123 anotacoes.zip --format "CVAT 1.1"
 ```
 
 Esses dois comandos recusam tasks que já têm qualquer anotação. `annotate` aceita `shapes` e `tags`. Geometrias JSON: `rectangle` (4 coordenadas), `polygon` (3 ou mais pares), `polyline` (2 ou mais pares), `points` (1 ou mais pares), `ellipse` (centro, extremo direito e extremo superior em 4 coordenadas) e `cuboid` (8 pares). Labels e atributos são referenciados pelo nome e resolvidos no destino; a origem salva é `auto`. Polígonos precisam de três vértices distintos e área não nula. Tracks, skeletons e máscaras RLE não são aceitos nesse JSON; importe um formato CVAT compatível em uma task vazia quando precisar desses recursos.
@@ -84,17 +86,17 @@ Cada shape recebe `frame`, `type`, `label`, `points` e opcionalmente `attributes
 Primeiro veja a prévia; nenhum envio ocorre por padrão:
 
 ```sh
-getter-cvat append 123 --json propostas.json
-getter-cvat import-missing 123 anotacoes_cvat.zip --dry-run
+cvat append 123 --json propostas.json
+cvat import-missing 123 anotacoes_cvat.zip --dry-run
 ```
 
 Para enviar:
 
 ```sh
-getter-cvat append 123 --json propostas.json --apply \
+cvat append 123 --json propostas.json --apply \
   --backup backups/antes.json --receipt receipts/envio.json
 
-getter-cvat import-missing 123 anotacoes_cvat.zip --apply \
+cvat import-missing 123 anotacoes_cvat.zip --apply \
   --backup backups/antes_xml.json --receipt receipts/envio_xml.json
 ```
 
@@ -109,7 +111,7 @@ Detalhes e limites de concorrência: [decisão sobre acréscimos](docs/decisions
 ## Amostragem local de vídeo
 
 ```sh
-getter-cvat sample video.mp4 --count 200 --out amostras/
+cvat sample video.mp4 --count 200 --out amostras/
 ```
 
 Requer `ffmpeg` e `ffprobe` no PATH. Produz exatamente N imagens uniformes incluindo primeiro e último frame, com manifesto. No vídeo VFR, o tempo usa FPS nominal e não equivale a timestamp VFR exato. Esse comando não acessa o CVAT.

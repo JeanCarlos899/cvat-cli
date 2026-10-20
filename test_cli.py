@@ -100,6 +100,19 @@ class CliTests(unittest.TestCase):
         self.assertEqual(args.step, 45)
         self.assertEqual(args.project, 150)
 
+    def test_command_reference_covers_every_subcommand(self):
+        choices = next(
+            action.choices
+            for action in parser()._actions
+            if hasattr(action, "choices") and action.choices
+        )
+        reference = (Path(__file__).parent / "docs" / "CLI.md").read_text()
+        for command in choices:
+            with self.subTest(command=command):
+                self.assertIn(f"`{command}", reference)
+        forbidden_brand = "get" + "ter"
+        self.assertNotIn(forbidden_brand, reference.casefold())
+
 
 if __name__ == "__main__":
     unittest.main()

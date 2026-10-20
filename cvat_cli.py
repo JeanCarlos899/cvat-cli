@@ -1,4 +1,4 @@
-"""The public Getter CVAT command-line interface.
+"""The public CVAT command-line interface.
 
 Secrets are read only from env/profile and never logged.
 """
@@ -15,7 +15,7 @@ import sys
 
 from sampling import uniform_indices
 
-DEFAULT_ENV = Path.home() / ".config/getter-cvat/.env"
+DEFAULT_ENV = Path.home() / ".config/cvat/.env"
 
 
 def read_env(path):
@@ -147,32 +147,46 @@ def sample(args):
 
 
 def parser():
-    p = argparse.ArgumentParser(description="Getter command-line interface for CVAT")
-    p.add_argument("--version", action="version", version="getter-cvat 0.3.0")
-    p.add_argument("--env", type=Path, default=DEFAULT_ENV)
-    p.add_argument("--host")
+    p = argparse.ArgumentParser(
+        description="Command-line interface for CVAT",
+        epilog="Full input/output contract: docs/CLI.md",
+    )
+    p.add_argument("--version", action="version", version="cvat 0.4.0")
+    p.add_argument(
+        "--env",
+        type=Path,
+        default=DEFAULT_ENV,
+        help="Credential profile (default: ~/.config/cvat/.env)",
+    )
+    p.add_argument("--host", help="HTTPS CVAT server; overrides CVAT_HOST")
     p.add_argument("--org", help="Organization slug; omitted = personal workspace")
     commands = p.add_subparsers(dest="command", required=True)
-    commands.add_parser("ping")
-    commands.add_parser("formats")
-    j = commands.add_parser("jobs")
-    j.add_argument("--task", type=int, required=True)
-    j = commands.add_parser("job-info")
-    j.add_argument("id", type=int)
+    commands.add_parser(
+        "ping", help="Validate authentication and print connection metadata"
+    )
+    commands.add_parser(
+        "formats", help="List import/export formats enabled by the server"
+    )
+    j = commands.add_parser("jobs", help="List jobs belonging to one task")
+    j.add_argument("--task", type=int, required=True, help="CVAT task ID")
+    j = commands.add_parser("job-info", help="Show one job")
+    j.add_argument("id", type=int, help="CVAT job ID")
     f = commands.add_parser(
         "frames", help="Download frame bytes without dataset export"
     )
-    f.add_argument("id", type=int)
-    f.add_argument("--out", required=True)
+    f.add_argument("id", type=int, help="CVAT task ID")
+    f.add_argument("--out", required=True, help="New output directory")
     f.add_argument("--frames", help="Zero-based IDs: 0,2,5:9 (inclusive)")
     f.add_argument("--quality", choices=["original", "compressed"], default="original")
     for name in ("append", "import-missing"):
         a = commands.add_parser(
             name, help="Add annotations only to unannotated frames; preview by default"
         )
-        a.add_argument("id", type=int)
+        a.add_argument("id", type=int, help="Destination CVAT task ID")
         if name == "append":
-            a.add_argument("--json", required=True)
+            a.add_argument(
+                "--json", required=True, help="Proposal JSON; see docs/CLI.md"
+            )
         else:
             a.add_argument("file", help="CVAT for images 1.1 XML or ZIP")
         mode = a.add_mutually_exclusive_group()
@@ -180,48 +194,85 @@ def parser():
         mode.add_argument(
             "--dry-run", action="store_true", help="Preview (also the default)"
         )
-        a.add_argument("--backup")
-        a.add_argument("--receipt")
+        a.add_argument("--backup", help="New JSON backup path; required with --apply")
+        a.add_argument("--receipt", help="New JSON receipt path; required with --apply")
     for name in ["projects", "tasks"]:
-        s = commands.add_parser(name)
-        s.add_argument("--project", type=int)
-    s = commands.add_parser("project-create")
-    s.add_argument("name")
-    s.add_argument("--labels", required=True)
-    s = commands.add_parser("project-rename")
-    s.add_argument("id", type=int)
-    s.add_argument("name")
-    s = commands.add_parser("task-create")
-    s.add_argument("name")
-    s.add_argument("--project", type=int, required=True)
-    s.add_argument("--files", nargs="+", required=True)
-    s.add_argument("--step", type=int, default=1)
-    s.add_argument("--quality", type=int, default=100)
-    s = commands.add_parser("task-upload")
-    s.add_argument("id", type=int)
-    s.add_argument("--files", nargs="+", required=True)
+        s = commands.add_parser(
+            name, help=f"List {name}, optionally filtered by project"
+        )
+        s.add_argument("--project", type=int, help="CVAT project ID")
+    s = commands.add_parser(
+        "project-create", help="Create a project with a CVAT label schema"
+    )
+    s.add_argument("name", help="New project name")
+    s.add_argument("--labels", required=True, help="Label-schema JSON array")
+    s = commands.add_parser("project-rename", help="Rename a project")
+    s.add_argument("id", type=int, help="CVAT project ID")
+    s.add_argument("name", help="New project name")
+    s = commands.add_parser("task-create", help="Create a task and upload files")
+    s.add_argument("name", help="New task name")
+    s.add_argument("--project", type=int, required=True, help="Destination project ID")
+    s.add_argument(
+        "--files",
+        nargs="+",
+        required=True,
+        help="Files, ZIPs or immediate image/video directories",
+    )
+    s.add_argument(
+        "--step", type=int, default=1, help="Keep every Nth video frame (default: 1)"
+    )
+    s.add_argument(
+        "--quality",
+        type=int,
+        default=100,
+        help="JPEG quality from 1 to 100 (default: 100)",
+    )
+    s = commands.add_parser("task-upload", help="Upload files only to an empty task")
+    s.add_argument("id", type=int, help="Empty CVAT task ID")
+    s.add_argument(
+        "--files",
+        nargs="+",
+        required=True,
+        help="Files, ZIPs or immediate image/video directories",
+    )
     for name in ["task-info", "labels"]:
-        s = commands.add_parser(name)
-        s.add_argument("id", type=int)
-    s = commands.add_parser("annotate")
-    s.add_argument("id", type=int)
-    s.add_argument("--json", required=True)
-    s = commands.add_parser("import")
-    s.add_argument("id", type=int)
-    s.add_argument("file")
-    s.add_argument("--format", default="CVAT 1.1")
-    s = commands.add_parser("export")
-    s.add_argument("id", type=int)
-    s.add_argument("out")
-    s.add_argument("--format", default="CVAT for images 1.1")
-    s.add_argument("--images", action="store_true")
-    s = commands.add_parser("raw-export")
-    s.add_argument("id", type=int)
-    s.add_argument("out")
-    s = commands.add_parser("sample")
-    s.add_argument("video")
-    s.add_argument("--count", type=int, default=200)
-    s.add_argument("--out", required=True)
+        s = commands.add_parser(name, help=f"Show task {name.replace('-', ' ')}")
+        s.add_argument("id", type=int, help="CVAT task ID")
+    s = commands.add_parser(
+        "annotate", help="Replace annotations in an empty task from proposal JSON"
+    )
+    s.add_argument("id", type=int, help="Empty CVAT task ID")
+    s.add_argument("--json", required=True, help="Proposal JSON; see docs/CLI.md")
+    s = commands.add_parser("import", help="Import a dataset into an empty task")
+    s.add_argument("id", type=int, help="Empty CVAT task ID")
+    s.add_argument("file", help="Dataset file accepted by the selected format")
+    s.add_argument(
+        "--format", default="CVAT 1.1", help="Server importer name (default: CVAT 1.1)"
+    )
+    s = commands.add_parser("export", help="Export task annotations or a dataset")
+    s.add_argument("id", type=int, help="CVAT task ID")
+    s.add_argument("out", help="New destination archive path")
+    s.add_argument(
+        "--format", default="CVAT for images 1.1", help="Server exporter name"
+    )
+    s.add_argument(
+        "--images",
+        action="store_true",
+        help="Include task images in the dataset archive",
+    )
+    s = commands.add_parser(
+        "raw-export", help="Save raw API annotations and label IDs as JSON"
+    )
+    s.add_argument("id", type=int, help="CVAT task ID")
+    s.add_argument("out", help="New output JSON path")
+    s = commands.add_parser(
+        "sample", help="Uniformly sample local video frames without contacting CVAT"
+    )
+    s.add_argument("video", help="Local input video path")
+    s.add_argument(
+        "--count", type=int, default=200, help="Number of output images (default: 200)"
+    )
+    s.add_argument("--out", required=True, help="New output directory")
     return p
 
 
