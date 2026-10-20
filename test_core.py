@@ -36,6 +36,13 @@ def polygon(frame):
 
 
 class CoreTests(unittest.TestCase):
+    def test_proposals_cannot_target_another_frame_order(self):
+        task = N(size=2, get_meta=lambda: N(frames=[N(name="b.png"), N(name="a.png")]))
+        with self.assertRaisesRegex(ValueError, "destination task"):
+            append_annotations(
+                N(), task, {"frame_names": ["a.png", "b.png"], "shapes": []}
+            )
+
     def test_shapes_and_tags_resolved_without_changing_input(self):
         payload = {"shapes": [polygon(2)], "tags": [{"label": "smoke", "frame": 1}]}
         result = resolve(payload, labels(), 3)

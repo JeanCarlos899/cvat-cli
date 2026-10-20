@@ -151,7 +151,7 @@ def parser():
         description="Command-line interface for CVAT",
         epilog="Full input/output contract: docs/CLI.md",
     )
-    p.add_argument("--version", action="version", version="cvat 0.4.0")
+    p.add_argument("--version", action="version", version="cvat 0.5.0")
     p.add_argument(
         "--env",
         type=Path,
@@ -331,7 +331,11 @@ def main():
         elif cmd == "projects":
             print(
                 json.dumps(
-                    [{"id": p.id, "name": p.name} for p in client.projects.list()],
+                    [
+                        {"id": p.id, "name": p.name}
+                        for p in client.projects.list()
+                        if args.project is None or p.id == args.project
+                    ],
                     ensure_ascii=False,
                 )
             )
@@ -476,9 +480,12 @@ def main():
                     )
                 )
             elif cmd == "labels":
+                from cvat_core import serial
+
                 print(
                     json.dumps(
-                        [l.to_dict() for l in task.get_labels()], ensure_ascii=False
+                        [serial(label) for label in task.get_labels()],
+                        ensure_ascii=False,
                     )
                 )
             elif cmd == "raw-export":

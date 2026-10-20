@@ -1,5 +1,7 @@
 # Contrato da CLI `cvat`
 
+Integração com `preannotate` (0.5): propostas podem incluir `frame_names`, array com todos os nomes de imagens na ordem dos índices CVAT. `append` recusa o envio se a ordem ou os nomes divergirem da task de destino. O exporter `preannotate export-proposals` fornece esse campo automaticamente; propostas antigas sem ele continuam aceitas, portanto confira manualmente a task. `import-missing` continua fazendo o vínculo por nomes do XML. `labels` retorna o schema serializado pelo SDK; `projects --project ID` filtra pelo ID indicado.
+
 Este arquivo é a referência operacional para pessoas e agentes. O único ponto de entrada é:
 
 ```sh

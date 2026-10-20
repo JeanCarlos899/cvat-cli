@@ -193,6 +193,7 @@ def resolve(payload, labels, size):
         "tags",
         "tracks",
         "version",
+        "frame_names",
     }:
         raise ValueError("Expected an annotation object with shapes/tags")
     if payload.get("tracks"):
@@ -433,6 +434,12 @@ def verify_created(before, after, payload):
 def append_annotations(
     client, task, payload, *, apply=False, backup=None, receipt=None
 ):
+    if "frame_names" in payload:
+        _, destination_names = frame_catalog(task)
+        if payload["frame_names"] != destination_names:
+            raise ValueError(
+                "Proposal frame names/order do not match the destination task"
+            )
     current = serial(task.get_annotations())
     resolved = resolve(payload, task.get_labels(), task.size)
     filtered, occupied = filter_missing(resolved, current, task.size)
